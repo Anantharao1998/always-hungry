@@ -1,23 +1,74 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+
+import React, { useState } from "react";
+import Axios from "axios";
+import { BrowserRouter, Route, Switch, Link } from "react-router-dom";
+import Categories from "./categories";
+import RandomMeal from "./RandomMeal";
 
 function App() {
+  const [mealName, setmealName] = useState("");
+  const [recipes, setrecipes] = useState([]);
+
+  var url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${mealName}`;
+
+  // getRecipes function GETS data from provided url and save the data to "recipes" array
+  async function getRecipes() {
+    try {
+      var result = await Axios.get(url);
+
+      setrecipes(result.data.meals);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // Runs getRecipes function whenever user submits a search. PreventDefault to disable website refresh upon submit.
+  const onSubmit = (e) => {
+    e.preventDefault();
+    getRecipes();
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {/* Temporary title for the page */}
+
+      <RandomMeal />
+      <Categories />
+      <h1>Search for Meal</h1>
+
+      {/* Search Input and passes value of the input to getRecipes function */}
+      <form className="searchForm" onSubmit={onSubmit}>
+        <input
+          type="text"
+          placeholder="Type meal name"
+          value={mealName}
+          onChange={(e) => setmealName(e.target.value)}
+        ></input>
+        <input type="submit" value="Search" />
+      </form>
+
+      {/* Returns searched recipe name and image */}
+      <div>
+        {recipes ? (
+          recipes.map((recipe) => {
+            return (
+              <div className="recipeTile">
+                <img className="image" src={recipe["strMealThumb"]} />
+                <p className="mealName">{recipe["strMeal"]}</p>
+              </div>
+            );
+          })
+        ) : (
+          <div className="noRecipeError">
+            <h1>Meal isn't found in our kitchen !!!</h1>
+            <p>
+              The recipe you are looking isn't here. Stay tune for future recipe
+              updates
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
